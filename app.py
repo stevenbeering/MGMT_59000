@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
+import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 import matplotlib.colors as mcolors
 
 st.set_page_config(page_title="NovaRetail Dashboard", layout="wide")
@@ -53,7 +53,7 @@ page = st.sidebar.radio(
 )
 
 def gradient_colors_1_to_5(values):
-    cmap = cm.colormaps["RdYlGn"]
+    cmap = matplotlib.colormaps["RdYlGn"]
     norm = mcolors.Normalize(vmin=1, vmax=5)
     return [cmap(norm(v)) for v in values]
 
