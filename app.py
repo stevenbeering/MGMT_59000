@@ -53,7 +53,7 @@ page = st.sidebar.radio(
 )
 
 def gradient_colors_1_to_5(values):
-    cmap = cm.get_cmap("RdYlGn")
+    cmap = cm.colormaps["RdYlGn"]
     norm = mcolors.Normalize(vmin=1, vmax=5)
     return [cmap(norm(v)) for v in values]
 
