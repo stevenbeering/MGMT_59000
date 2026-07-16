@@ -57,11 +57,18 @@ def gradient_colors_1_to_5(values):
     norm = mcolors.Normalize(vmin=1, vmax=5)
     return [cmap(norm(v)) for v in values]
 
+def sorted_by_field(series, field):
+    # ProductCategory is sorted from largest to smallest value;
+    # all other consumer category fields stay in alphabetical order.
+    if field == "ProductCategory":
+        return series.sort_values(ascending=False)
+    return series.sort_index()
+
 if page == "Population Distribution by Consumer Category":
     st.header("Population Distribution by Consumer Category")
     field = st.selectbox("Select Consumer Category Field", CATEGORY_FIELDS)
 
-    counts = df[field].value_counts().sort_index()
+    counts = sorted_by_field(df[field].value_counts(), field)
 
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.bar(counts.index.astype(str), counts.values, color="#4C72B0")
@@ -75,7 +82,7 @@ elif page == "Total Purchase Price by Consumer Category":
     st.header("Total Purchase Price by Consumer Category")
     field = st.selectbox("Select Consumer Category Field", CATEGORY_FIELDS)
 
-    totals = df.groupby(field)["PurchaseAmount"].sum().sort_index()
+    totals = sorted_by_field(df.groupby(field)["PurchaseAmount"].sum(), field)
 
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.bar(totals.index.astype(str), totals.values, color="#4C72B0")
@@ -89,7 +96,7 @@ elif page == "Average Purchase Price by Consumer Category":
     st.header("Average Purchase Price by Consumer Category")
     field = st.selectbox("Select Consumer Category Field", CATEGORY_FIELDS)
 
-    averages = df.groupby(field)["PurchaseAmount"].mean().sort_index()
+    averages = sorted_by_field(df.groupby(field)["PurchaseAmount"].mean(), field)
 
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.bar(averages.index.astype(str), averages.values, color="#4C72B0")
@@ -103,7 +110,7 @@ elif page == "Average Customer Satisfaction by Consumer Category":
     st.header("Average Customer Satisfaction by Consumer Category")
     field = st.selectbox("Select Consumer Category Field", CATEGORY_FIELDS)
 
-    avg_satisfaction = df.groupby(field)["CustomerSatisfaction"].mean().sort_index()
+    avg_satisfaction = sorted_by_field(df.groupby(field)["CustomerSatisfaction"].mean(), field)
     bar_colors = gradient_colors_1_to_5(avg_satisfaction.values)
 
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -126,7 +133,16 @@ elif page == "Consumer Behavior by Consumer Category":
     )
     proportions = proportions.reindex(columns=LABEL_ORDER, fill_value=0)
     proportions = proportions.div(proportions.sum(axis=1), axis=0) * 100
-    proportions = proportions.sort_index()
+
+    if field == "ProductCategory":
+        # Sort descending by Growth %, breaking ties with Promising %,
+        # then Stable %, then Decline % (all descending).
+        proportions = proportions.sort_values(
+            by=["Growth", "Promising", "Stable", "Decline"],
+            ascending=[False, False, False, False],
+        )
+    else:
+        proportions = proportions.sort_index()
 
     fig, ax = plt.subplots(figsize=(10, 6))
     bottom = np.zeros(len(proportions))
